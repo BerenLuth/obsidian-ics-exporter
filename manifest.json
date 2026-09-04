@@ -1,11 +1,11 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "ics-exporter",
+	"name": "Export as .ics",
 	"version": "1.0.0",
-	"minAppVersion": "1.0.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"minAppVersion": "1.4.4",
+	"description": "Takes the current note and export it as a .ics file, ready to be imported in your favourite calendar app.",
+	"author": "Berenluth",
+	"authorUrl": "https://github.com/BerenLuth",
+	"fundingUrl": "",
 	"isDesktopOnly": false
 }

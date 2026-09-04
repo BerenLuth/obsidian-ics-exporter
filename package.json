@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "ics-exporter",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "Exports the current note's deadline as an .ics calendar event.",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {
