@@ -1,4 +1,4 @@
-# ics-exporter
+# Export as .ics
 
 A Vibe-coded Obsidian plugin with one command: **Export current note as .ics calendar event**.
 

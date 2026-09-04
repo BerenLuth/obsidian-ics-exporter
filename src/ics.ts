@@ -55,7 +55,7 @@ function buildDescription(vaultName: string, file: TFile, content: DescriptionCo
 		case 'note-body':
 			return noteBody;
 		case 'link-and-body':
-			return `${link}\n\n${noteBody}`;
+			return `${noteBody}\n_____\n${link}`;
 	}
 }
 
