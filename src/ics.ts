@@ -1,5 +1,6 @@
 import { TFile } from 'obsidian';
 import { Deadline } from './deadline';
+import { DescriptionContent } from './settings';
 
 function pad(n: number, width = 2): string {
 	return String(n).padStart(width, '0');
@@ -34,12 +35,38 @@ function addDays(year: number, month: number, day: number, amount: number) {
 }
 
 function obsidianUri(vaultName: string, file: TFile): string {
-	const params = new URLSearchParams({ vault: vaultName, file: file.path });
-	return `obsidian://open?${params.toString()}`;
+	// Not URLSearchParams: its `.toString()` percent-encodes spaces as `+`
+	// (form encoding), which a URI decoder reads back literally as a "+"
+	// character rather than a space -- breaking the link for any filename
+	// with a space in it. encodeURIComponent uses %20, which round-trips.
+	const vault = encodeURIComponent(vaultName);
+	const path = encodeURIComponent(file.path);
+	return `obsidian://open?vault=${vault}&file=${path}`;
+}
+
+/** Assembles the event's DESCRIPTION per the `descriptionContent` setting.
+ * `noteBody` is the note's content with its frontmatter stripped (see
+ * CONTEXT.md) -- ignored entirely when the setting is 'link'. */
+function buildDescription(vaultName: string, file: TFile, content: DescriptionContent, noteBody: string): string {
+	const link = obsidianUri(vaultName, file);
+	switch (content) {
+		case 'link':
+			return link;
+		case 'note-body':
+			return noteBody;
+		case 'link-and-body':
+			return `${link}\n\n${noteBody}`;
+	}
 }
 
 /** Builds a single-event .ics file for a note's Deadline (see CONTEXT.md). */
-export function buildICS(file: TFile, deadline: Deadline, vaultName: string): string {
+export function buildICS(
+	file: TFile,
+	deadline: Deadline,
+	vaultName: string,
+	descriptionContent: DescriptionContent,
+	noteBody: string,
+): string {
 	const uid = `${hashPath(file.path)}@ics-exporter`;
 
 	const now = new Date();
@@ -81,7 +108,7 @@ export function buildICS(file: TFile, deadline: Deadline, vaultName: string): st
 		dtstartLine,
 		dtendLine,
 		`SUMMARY:${escapeText(file.basename)}`,
-		`DESCRIPTION:${escapeText(obsidianUri(vaultName, file))}`,
+		`DESCRIPTION:${escapeText(buildDescription(vaultName, file, descriptionContent, noteBody))}`,
 		'END:VEVENT',
 		'END:VCALENDAR',
 	];

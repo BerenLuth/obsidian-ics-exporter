@@ -7,7 +7,7 @@ Run it from the command palette (or bind it to a hotkey in **Settings → Hotkey
 - If it's a valid date (`YYYY-MM-DD`) or date & time (`YYYY-MM-DDTHH:mm`) — Obsidian's own Properties date formats — it's used directly.
 - Otherwise you're asked to pick a date, which is then written back to `deadline`.
 
-The event is written to `.ics/<note name>.ics` in the vault. See [CONTEXT.md](./CONTEXT.md) for terminology and `docs/adr/` for the reasoning behind a couple of non-obvious choices.
+The event is written to `<note name>.ics` inside an export folder in the vault (**Settings → ics-exporter**, default `.ics/`). See [CONTEXT.md](./CONTEXT.md) for terminology and `docs/adr/` for the reasoning behind a couple of non-obvious choices.
 
 ## Developing
 

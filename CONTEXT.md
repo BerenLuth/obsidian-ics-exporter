@@ -9,5 +9,5 @@ The `deadline` frontmatter property on a note. Valid only as Obsidian's native D
 _Avoid_: due date, date
 
 **Export**:
-Turning a note's Deadline into a calendar event (VEVENT) and writing it to an `.ics` file inside the vault's `.ics/` folder.
+Turning a note's Deadline into a calendar event (VEVENT) and writing it to an `.ics` file inside the vault's export folder (a setting, default `.ics/`).
 _Avoid_: download, save as
