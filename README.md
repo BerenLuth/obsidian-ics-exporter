@@ -1,6 +1,6 @@
 # ics-exporter
 
-An Vibe-coded Obsidian plugin with one command: **Export current note as .ics calendar event**.
+A Vibe-coded Obsidian plugin with one command: **Export current note as .ics calendar event**.
 
 Run it from the command palette (or bind it to a hotkey in **Settings → Hotkeys**, like any other command). It reads the note's `deadline` frontmatter property:
 
