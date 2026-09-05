@@ -12,7 +12,9 @@ Electron/Node access without bundling the whole API surface.
 ## Consequences
 
 This only works in the Electron-based desktop app -- `window.require` doesn't
-exist in the Capacitor-based mobile app, so the feature silently no-ops there
-(surfaced to the user via the export Notice, not a settings-tab restriction).
-If a future Obsidian sandboxing change removes this global, the fix is
-contained to this one file.
+exist in the Capacitor-based mobile app. `export-note-as-ics.ts` gates on this
+(via the `FileSystemAdapter` check) and calls `shareIcsFile` instead on
+mobile, so "Open after export" does something appropriate on both platforms
+rather than silently no-oping on one of them -- see ADR 0004. If a future
+Obsidian sandboxing change removes this global, the fix is contained to this
+one file.

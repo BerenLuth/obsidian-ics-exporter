@@ -2,6 +2,7 @@ import { App, FileSystemAdapter, Notice, TFile } from 'obsidian';
 import { parseDeadline } from '../deadline';
 import { buildICS } from '../ics';
 import { openWithDefaultApp } from '../open-with-default-app';
+import { shareIcsFile } from '../share-ics-file';
 import { IcsExporterSettings } from '../settings';
 import { DeadlineModal } from '../ui/deadline-modal';
 
@@ -39,11 +40,12 @@ export async function exportNoteAsIcs(app: App, file: TFile, settings: IcsExport
 		return;
 	}
 
-	const openError = await tryOpen(app, path);
+	const { method, error } = await handOffIcsFile(app, file, path, ics);
+	const pastTense = method === 'open' ? 'opened' : 'shared';
 	new Notice(
-		openError
-			? `Exported "${file.basename}" to ${path}, but couldn't open it: ${openError}`
-			: `Exported "${file.basename}" to ${path} and opened it`,
+		error
+			? `Exported "${file.basename}" to ${path}, but couldn't ${method} it: ${error}`
+			: `Exported "${file.basename}" to ${path} and ${pastTense} it`,
 	);
 }
 
@@ -75,10 +77,20 @@ async function writeIcsFile(app: App, file: TFile, contents: string, folder: str
 	return path;
 }
 
-async function tryOpen(app: App, vaultRelativePath: string): Promise<string | null> {
-	if (!(app.vault.adapter instanceof FileSystemAdapter)) {
-		return "opening isn't supported on mobile";
+type HandoffMethod = 'open' | 'share';
+
+// Desktop opens the .ics with the OS's default handler (Electron only); mobile
+// has no equivalent for that, so it hands the file to the native share sheet
+// instead, where the user can pick a calendar app themselves. See ADR 0004.
+async function handOffIcsFile(
+	app: App,
+	file: TFile,
+	vaultRelativePath: string,
+	ics: string,
+): Promise<{ method: HandoffMethod; error: string | null }> {
+	if (app.vault.adapter instanceof FileSystemAdapter) {
+		const fullPath = app.vault.adapter.getFullPath(vaultRelativePath);
+		return { method: 'open', error: await openWithDefaultApp(fullPath) };
 	}
-	const fullPath = app.vault.adapter.getFullPath(vaultRelativePath);
-	return openWithDefaultApp(fullPath);
+	return { method: 'share', error: await shareIcsFile(`${file.basename}.ics`, ics) };
 }

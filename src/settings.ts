@@ -71,7 +71,7 @@ export class IcsExporterSettingTab extends PluginSettingTab {
 			},
 			{
 				name: 'Open after export',
-				desc: "After saving the .ics file, open it with your system's default app (e.g. your calendar) so the event is imported right away. Desktop only.",
+				desc: "After saving the .ics file, hand it off right away so the event can be imported: opens it with your system's default app on desktop, or shares it via your device's share sheet on mobile.",
 				control: { type: 'toggle', key: 'openAfterExport' },
 			},
 		];
@@ -137,7 +137,7 @@ export class IcsExporterSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName('Open after export')
 			.setDesc(
-				"After saving the .ics file, open it with your system's default app (e.g. your calendar) so the event is imported right away. Desktop only.",
+				"After saving the .ics file, hand it off right away so the event can be imported: opens it with your system's default app on desktop, or shares it via your device's share sheet on mobile.",
 			)
 			.addToggle((toggle) =>
 				toggle.setValue(this.plugin.settings.openAfterExport).onChange(async (value) => {

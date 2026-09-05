@@ -1,7 +1,7 @@
 {
 	"id": "ics-exporter",
 	"name": "Export as .ics",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"minAppVersion": "1.4.4",
 	"description": "Takes the current note and export it as a .ics file, ready to be imported in your favourite calendar app.",
 	"author": "Berenluth",

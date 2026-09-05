@@ -4,8 +4,9 @@ interface ElectronShell {
 
 /** Opens a file with the OS's default handler for its extension (e.g. launches
  * the user's calendar app to import an .ics). Electron-only: Obsidian doesn't
- * expose this itself, and mobile has no equivalent -- callers should already be
- * gating on desktop (see the `FileSystemAdapter` check in export-note-as-ics.ts).
+ * expose this itself, and this global isn't available on mobile -- callers
+ * should already be gating on desktop (see the `FileSystemAdapter` check in
+ * export-note-as-ics.ts), which uses `shareIcsFile` instead on mobile.
  * See ADR 0003 for why this reaches into Electron via the global `require`
  * instead of an `electron` dependency.
  *
