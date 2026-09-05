@@ -24,6 +24,10 @@ distinguished desktop from mobile.
 
 ## Consequences
 
+- **Update, on-device testing**: Obsidian's mobile WebView turned out not to
+  expose `navigator.share` at all, so this alone wasn't enough -- see ADR
+  0006 for what `shareIcsFile` falls back to when it's missing. The feature
+  check stays in place in case a future Obsidian version does expose it.
 - Unlike desktop's `openWithDefaultApp`, which reliably launches the user's
   actual calendar app, the mobile share sheet just lists whatever's
   registered as a share target on that device. Not every calendar app

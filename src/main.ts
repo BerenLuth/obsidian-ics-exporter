@@ -1,4 +1,4 @@
-import { MarkdownView, Plugin } from 'obsidian';
+import { MarkdownView, Notice, Plugin } from 'obsidian';
 import { exportNoteAsIcs } from './commands/export-note-as-ics';
 import { DEFAULT_SETTINGS, IcsExporterSettings, IcsExporterSettingTab } from './settings';
 
@@ -17,7 +17,13 @@ export default class IcsExporterPlugin extends Plugin {
 				if (!file) return false;
 
 				if (!checking) {
-					void exportNoteAsIcs(this.app, file, this.settings);
+					// Unhandled here, a thrown error would just vanish -- no Notice, no
+					// console output the user can find without devtools attached. Surface
+					// it instead of failing silently.
+					exportNoteAsIcs(this.app, file, this.settings).catch((error: unknown) => {
+						console.error('ics-exporter: export failed', error);
+						new Notice(`Export failed: ${error instanceof Error ? error.message : String(error)}`);
+					});
 				}
 				return true;
 			},

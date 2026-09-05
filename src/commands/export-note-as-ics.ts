@@ -62,18 +62,24 @@ async function readNoteBody(app: App, file: TFile): Promise<string> {
 // `.ics/`). Two notes with the same basename in different vault folders will
 // overwrite each other here -- that collision is accepted for simplicity (see
 // grilling session, Q11). Returns the vault-relative path that was written.
+//
+// Writes via `app.vault.adapter` (`exists`/`mkdir`/`write`) rather than
+// `vault.getAbstractFileByPath`/`createFolder`/`create`: the latter go through
+// Obsidian's in-memory file index, which can lag behind the adapter's actual
+// state (seen on mobile right after a sync) -- `getAbstractFileByPath` says
+// "doesn't exist" for something that already does, and `createFolder`/
+// `create` then throw "already exists." The adapter talks to the filesystem
+// directly (per its own `exists()` doc, this is the authoritative check vs.
+// the vault's index) and `write()` unconditionally creates-or-overwrites, so
+// there's no existence race to lose.
 async function writeIcsFile(app: App, file: TFile, contents: string, folder: string): Promise<string> {
-	if (!app.vault.getAbstractFileByPath(folder)) {
-		await app.vault.createFolder(folder);
+	const adapter = app.vault.adapter;
+	if (!(await adapter.exists(folder))) {
+		await adapter.mkdir(folder);
 	}
 
 	const path = `${folder}/${file.basename}.ics`;
-	const existing = app.vault.getAbstractFileByPath(path);
-	if (existing instanceof TFile) {
-		await app.vault.modify(existing, contents);
-	} else {
-		await app.vault.create(path, contents);
-	}
+	await adapter.write(path, contents);
 	return path;
 }
 

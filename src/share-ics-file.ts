@@ -1,17 +1,26 @@
-/** Hands an .ics file to the OS's native share sheet via the Web Share API, so
- * the user can pick a calendar app (or anything else that accepts
- * `text/calendar`) to import it into. This is the mobile counterpart to
- * `openWithDefaultApp`: Obsidian's mobile apps are Capacitor-based WebViews
- * with no Electron/Node access, but `navigator.share` is a standard web API
- * that the system WebView supports on both Android and iOS. See ADR 0004.
- *
- * Resolves to an error message on failure, or null on success. Success only
- * means the share sheet was shown -- same as `openWithDefaultApp`, there's no
- * way to know what the user picked afterwards, or whether an import actually
- * happened. */
-export async function shareIcsFile(filename: string, contents: string): Promise<string | null> {
-	if (!navigator.share) return "Sharing isn't supported on this platform.";
+import { Platform } from 'obsidian';
 
+/** Hands an event off to the OS so the user can add it to a calendar, without
+ * any native plugin code of this plugin's own -- see ADR 0004 (mobile has no
+ * Electron/Node access, so `openWithDefaultApp` doesn't work there) and ADR
+ * 0006/0007 (why direct Android/iOS calendar APIs aren't reachable either,
+ * and what this falls back to instead).
+ *
+ * Tries the Web Share API first; Obsidian's mobile WebView doesn't currently
+ * expose it (confirmed -- see ADR 0006), but the check costs nothing and
+ * covers a future Obsidian version that does. Below that, tries an iOS-
+ * specific trick per ADR 0006/0007; Android has no remaining option (both
+ * ADRs -- confirmed dead on-device).
+ *
+ * Resolves to an error message on failure, or null on success -- "success"
+ * for the iOS fallback only means the attempt was made; unlike the Web Share
+ * path, there's no signal at all for whether it landed anywhere. */
+export async function shareIcsFile(filename: string, contents: string): Promise<string | null> {
+	if (!navigator.share) return tryIosFallback(contents);
+	return shareViaWebShare(filename, contents);
+}
+
+async function shareViaWebShare(filename: string, contents: string): Promise<string | null> {
 	const file = new File([contents], filename, { type: 'text/calendar' });
 	if (navigator.canShare && !navigator.canShare({ files: [file] })) {
 		return "This device can't share this file.";
@@ -26,4 +35,20 @@ export async function shareIcsFile(filename: string, contents: string): Promise<
 		if (error instanceof Error && error.name === 'AbortError') return null;
 		return error instanceof Error ? error.message : String(error);
 	}
+}
+
+function tryIosFallback(contents: string): string | null {
+	// No Android path here -- see ADR 0006 (the `intent://` URI trick) and ADR
+	// 0007 (a forced download via `<a download>`), both tried and confirmed
+	// dead on-device.
+	if (Platform.isIosApp) {
+		// WebKit recognizes a `text/calendar` payload and offers its own native
+		// "Add to Calendar" sheet on a plain navigation -- a rendering-engine
+		// behavior, not something that depends on Obsidian's app shell
+		// intercepting anything. Untested on-device as of ADR 0006/0007.
+		window.location.href = `data:text/calendar;charset=utf-8,${encodeURIComponent(contents)}`;
+		return null;
+	}
+
+	return "Automatically handing the file to another app isn't supported here -- open it from a file manager to add it to your calendar.";
 }
