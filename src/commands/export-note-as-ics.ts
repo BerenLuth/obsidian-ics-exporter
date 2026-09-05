@@ -4,35 +4,47 @@ import { buildICS } from '../ics';
 import { openWithDefaultApp } from '../open-with-default-app';
 import { shareIcsFile } from '../share-ics-file';
 import { IcsExporterSettings } from '../settings';
-import { DeadlineModal } from '../ui/deadline-modal';
+import { EventDetailsModal } from '../ui/event-details-modal';
 
 /** Exports a note's Deadline as a calendar event (see CONTEXT.md). Prompts for
- * a date when `deadline` is missing or doesn't match the accepted shape, and
- * (per `saveDeadlineToFrontmatter`) writes it back to frontmatter so future
- * exports don't need to ask again. */
+ * a date when `useDeadlineFromFrontmatter` is off, or the note's
+ * `deadlinePropertyName` property is missing or doesn't match the accepted
+ * shape; (per `saveDeadlineToFrontmatter`) writes a picked date back to that
+ * same property so future exports don't need to ask again. Also prompts for a
+ * title when `useFileNameAsEventTitle` is off -- in the same window as the
+ * date prompt when both are needed, rather than two prompts back to back. */
 export async function exportNoteAsIcs(app: App, file: TFile, settings: IcsExporterSettings): Promise<void> {
 	const frontmatter: Record<string, unknown> | undefined = app.metadataCache.getFileCache(file)?.frontmatter;
-	let deadline = parseDeadline(frontmatter?.deadline);
+	let deadline = settings.useDeadlineFromFrontmatter
+		? parseDeadline(frontmatter?.[settings.deadlinePropertyName])
+		: null;
+	let title = settings.useFileNameAsEventTitle ? file.basename : undefined;
 
-	if (!deadline) {
-		const picked = await new DeadlineModal(app, file.basename).promptForDate();
+	if (!deadline || title === undefined) {
+		const picked = await new EventDetailsModal(app, file.basename, title === undefined, !deadline).prompt();
 		if (!picked) return; // user cancelled
 
-		deadline = parseDeadline(picked);
 		if (!deadline) {
-			new Notice('Invalid date, export cancelled.');
-			return;
+			deadline = parseDeadline(picked.date);
+			if (!deadline) {
+				new Notice('Invalid date, export cancelled.');
+				return;
+			}
+
+			if (settings.saveDeadlineToFrontmatter) {
+				await app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
+					fm[settings.deadlinePropertyName] = picked.date;
+				});
+			}
 		}
 
-		if (settings.saveDeadlineToFrontmatter) {
-			await app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
-				fm.deadline = picked;
-			});
+		if (title === undefined) {
+			title = picked.title || file.basename;
 		}
 	}
 
 	const noteBody = await readNoteBody(app, file);
-	const ics = buildICS(file, deadline, app.vault.getName(), settings.descriptionContent, noteBody);
+	const ics = buildICS(file, title, deadline, app.vault.getName(), settings.descriptionContent, noteBody);
 	const path = await writeIcsFile(app, file, ics, settings.exportFolder);
 
 	if (!settings.openAfterExport) {

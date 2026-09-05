@@ -59,9 +59,12 @@ function buildDescription(vaultName: string, file: TFile, content: DescriptionCo
 	}
 }
 
-/** Builds a single-event .ics file for a note's Deadline (see CONTEXT.md). */
+/** Builds a single-event .ics file for a note's Deadline (see CONTEXT.md).
+ * `title` is the note's file name unless `useFileNameAsEventTitle` is off, in
+ * which case it's whatever the user typed into the export prompt instead. */
 export function buildICS(
 	file: TFile,
+	title: string,
 	deadline: Deadline,
 	vaultName: string,
 	descriptionContent: DescriptionContent,
@@ -107,7 +110,7 @@ export function buildICS(
 		`DTSTAMP:${dtstamp}`,
 		dtstartLine,
 		dtendLine,
-		`SUMMARY:${escapeText(file.basename)}`,
+		`SUMMARY:${escapeText(title)}`,
 		`DESCRIPTION:${escapeText(buildDescription(vaultName, file, descriptionContent, noteBody))}`,
 		'END:VEVENT',
 		'END:VCALENDAR',

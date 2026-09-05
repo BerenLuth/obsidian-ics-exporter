@@ -5,7 +5,7 @@ An Obsidian plugin that exports a note's deadline as a calendar event.
 ## Language
 
 **Deadline**:
-The `deadline` frontmatter property on a note. Valid only as Obsidian's native Date (`YYYY-MM-DD`) or Date & time (`YYYY-MM-DDTHH:mm`) property shape — anything else is not a Deadline, it's just unrecognized text sitting in that field.
+The frontmatter property (named `deadline` by default; the property name is a setting) on a note that holds it. Valid only as Obsidian's native Date (`YYYY-MM-DD`) or Date & time (`YYYY-MM-DDTHH:mm`) property shape — anything else is not a Deadline, it's just unrecognized text sitting in that field.
 _Avoid_: due date, date
 
 **Export**:
